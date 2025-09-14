@@ -2,6 +2,8 @@
 #include <QRotationSensor>
 #include <QRotationReading>
 #include <QTimer>
+#include <QDebug>
+#include <cmath>
 
 OrientationSensor::OrientationSensor(QObject *parent)
     : QObject(parent)
@@ -26,14 +28,26 @@ OrientationSensor::~OrientationSensor()
 
 void OrientationSensor::start()
 {
+    qDebug() << "OrientationSensor::start() called";
+    
     if (!m_rotationSensor->isConnectedToBackend()) {
+        qDebug() << "OrientationSensor: Not connected to backend, using simulated data";
+        // Fallback to simulated data for desktop testing
+        if (!m_isActive) {
+            m_timer->start();
+            m_isActive = true;
+            qDebug() << "OrientationSensor: Started with simulated data";
+        }
         return;
     }
     
     if (!m_isActive) {
+        qDebug() << "OrientationSensor: Starting real sensor and timer";
         m_rotationSensor->start();
         m_timer->start();
         m_isActive = true;
+    } else {
+        qDebug() << "OrientationSensor: Already active";
     }
 }
 
@@ -53,7 +67,23 @@ bool OrientationSensor::isActive() const
 
 void OrientationSensor::readingSensor()
 {
+    if (!m_rotationSensor->isConnectedToBackend()) {
+        // Generate simulated orientation data for desktop testing
+        static double angle = 0.0;
+        angle += 1.0; // Increment by 1 degree each time
+        if (angle >= 360.0) angle = 0.0;
+        
+        double x = sin(angle * M_PI / 180.0) * 10.0; // Simulate roll
+        double y = cos(angle * M_PI / 180.0) * 5.0;  // Simulate pitch
+        double z = angle; // Simulate yaw
+        
+        qDebug() << "OrientationSensor (simulated): x=" << x << "y=" << y << "z=" << z;
+        emit orientationChanged(x, y, z);
+        return;
+    }
+    
     if (!m_rotationSensor->reading()) {
+        qDebug() << "OrientationSensor: No reading available";
         return;
     }
     
@@ -64,5 +94,6 @@ void OrientationSensor::readingSensor()
     double y = reading->y();
     double z = reading->z();
     
+    qDebug() << "OrientationSensor (real): x=" << x << "y=" << y << "z=" << z;
     emit orientationChanged(x, y, z);
 }

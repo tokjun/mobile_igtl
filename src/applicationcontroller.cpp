@@ -84,9 +84,16 @@ void ApplicationController::disconnectFromServer()
 
 void ApplicationController::startSendingOrientation()
 {
+    qDebug() << "ApplicationController::startSendingOrientation() called";
+    qDebug() << "Connected:" << m_isConnected << "Already sending:" << m_isSendingOrientation;
+    
     if (m_isConnected && !m_isSendingOrientation) {
+        qDebug() << "Starting orientation sensor...";
         m_orientationSensor->start();
         m_isSendingOrientation = true;
+        qDebug() << "Orientation sending started";
+    } else {
+        qDebug() << "Cannot start sending - not connected or already sending";
     }
 }
 
@@ -117,8 +124,13 @@ void ApplicationController::onConnectionStateChanged()
 
 void ApplicationController::onOrientationChanged(double x, double y, double z)
 {
+    qDebug() << "ApplicationController::onOrientationChanged:" << x << y << z;
+    
     if (m_isConnected && m_isSendingOrientation) {
+        qDebug() << "Sending orientation data to network";
         m_networkManager->sendOrientationData(x, y, z);
         emit orientationDataSent(x, y, z);
+    } else {
+        qDebug() << "Not sending - connected:" << m_isConnected << "sending:" << m_isSendingOrientation;
     }
 }
