@@ -14,7 +14,7 @@ OrientationSensor::OrientationSensor(QObject *parent)
     connect(m_timer, &QTimer::timeout, this, &OrientationSensor::readingSensor);
     
     // Check if rotation sensor is available
-    if (!m_rotationSensor->isAvailable()) {
+    if (!m_rotationSensor->connectToBackend()) {
         qWarning("Rotation sensor is not available on this device");
     }
 }
@@ -26,7 +26,7 @@ OrientationSensor::~OrientationSensor()
 
 void OrientationSensor::start()
 {
-    if (!m_rotationSensor->isAvailable()) {
+    if (!m_rotationSensor->isConnectedToBackend()) {
         return;
     }
     

@@ -9,12 +9,17 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick Network Sensors)
 
 qt6_standard_project_setup()
 
-# OpenIGTLink dependency
-find_package(OpenIGTLink QUIET)
-if(NOT OpenIGTLink_FOUND)
-    message(STATUS "OpenIGTLink not found, will use local copy")
-    add_subdirectory(third_party/openigtlink)
-endif()
+# OpenIGTLink dependency - always use local copy
+message(STATUS "Using local OpenIGTLink copy")
+# Set minimum policy version for third-party code compatibility
+set(CMAKE_POLICY_DEFAULT_CMP0000 NEW)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+add_subdirectory(third_party/openigtlink)
+
+# Set variables for local build
+set(OpenIGTLink_LIBRARIES OpenIGTLink)
+set(OpenIGTLink_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/openigtlink/Source)
+set(USING_LOCAL_OPENIGTLINK TRUE)
 
 # Source files
 set(SOURCES
@@ -55,6 +60,13 @@ target_link_libraries(OpenIGTLinkMobile PRIVATE
     Qt6::Sensors
     ${OpenIGTLink_LIBRARIES}
 )
+
+# Add OpenIGTLink compile definition if using local build
+message(STATUS "USING_LOCAL_OPENIGTLINK = ${USING_LOCAL_OPENIGTLINK}")
+if(USING_LOCAL_OPENIGTLINK)
+    message(STATUS "Adding OPENIGTLINK_FOUND definition")
+    target_compile_definitions(OpenIGTLinkMobile PRIVATE OPENIGTLINK_FOUND)
+endif()
 
 target_include_directories(OpenIGTLinkMobile PRIVATE
     src/

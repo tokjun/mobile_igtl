@@ -1,13 +1,15 @@
 #pragma once
 
 #include <QObject>
-#include <memory>
 
+#ifdef OPENIGTLINK_FOUND
+#include "igtlClientSocket.h"
+#else
 // Forward declarations for OpenIGTLink
 namespace igtl {
     class ClientSocket;
-    class OrientationMessage;
 }
+#endif
 
 class IGTLClient : public QObject
 {
@@ -29,6 +31,8 @@ signals:
     void connectionError(const QString &error);
 
 private:
-    std::unique_ptr<igtl::ClientSocket> m_socket;
+#ifdef OPENIGTLINK_FOUND
+    igtl::ClientSocket::Pointer m_socket;
+#endif
     bool m_isConnected;
 };

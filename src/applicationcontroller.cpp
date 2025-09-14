@@ -1,6 +1,7 @@
 #include "applicationcontroller.h"
 #include "orientationsensor.h"
 #include "networkmanager.h"
+#include <QDebug>
 
 ApplicationController::ApplicationController(QObject *parent)
     : QObject(parent)
@@ -15,6 +16,13 @@ ApplicationController::ApplicationController(QObject *parent)
     // Connect signals
     connect(m_networkManager, &NetworkManager::connectionStateChanged,
             this, &ApplicationController::onConnectionStateChanged);
+    
+    connect(m_networkManager, &NetworkManager::connectionError,
+            this, [this](const QString &error) {
+                qDebug() << "Connection error:" << error;
+                m_connectionStatus = "Error: " + error;
+                emit connectionStatusChanged();
+            });
     
     connect(m_orientationSensor, &OrientationSensor::orientationChanged,
             this, &ApplicationController::onOrientationChanged);
@@ -62,6 +70,9 @@ QString ApplicationController::connectionStatus() const
 
 void ApplicationController::connectToServer()
 {
+    qDebug() << "Attempting to connect to" << m_serverHost << ":" << m_serverPort;
+    m_connectionStatus = "Connecting...";
+    emit connectionStatusChanged();
     m_networkManager->connectToServer(m_serverHost, m_serverPort);
 }
 

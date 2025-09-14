@@ -1,10 +1,13 @@
 #include "igtlclient.h"
+#include <QDebug>
 
 // OpenIGTLink includes
 #ifdef OPENIGTLINK_FOUND
 #include "igtlClientSocket.h"
-#include "igtlOrientationMessage.h"
+#include "igtlTransformMessage.h"
 #include "igtlTimeStamp.h"
+#include "igtlMath.h"
+#include <cmath>
 #else
 // Stub implementations when OpenIGTLink is not available
 namespace igtl {
@@ -16,15 +19,15 @@ namespace igtl {
         bool GetConnected() { return false; }
     };
     
-    class OrientationMessage {
+    class TransformMessage {
     public:
+        typedef void* Pointer;
         static Pointer New() { return nullptr; }
         void SetDeviceName(const char*) {}
-        void SetOrientation(float, float, float, float) {}
+        void SetMatrix(void*) {}
         void Pack() {}
         void* GetPackPointer() { return nullptr; }
         int GetPackSize() { return 0; }
-        typedef void* Pointer;
     };
     
     class TimeStamp {
@@ -36,9 +39,11 @@ namespace igtl {
 
 IGTLClient::IGTLClient(QObject *parent)
     : QObject(parent)
-    , m_socket(std::make_unique<igtl::ClientSocket>())
     , m_isConnected(false)
 {
+#ifdef OPENIGTLINK_FOUND
+    m_socket = igtl::ClientSocket::New();
+#endif
 }
 
 IGTLClient::~IGTLClient()
@@ -48,12 +53,23 @@ IGTLClient::~IGTLClient()
 
 bool IGTLClient::connectToServer(const QString &hostname, int port)
 {
+    qDebug() << "IGTLClient: connectToServer called with" << hostname << ":" << port;
+    
+#ifdef OPENIGTLINK_FOUND
+    qDebug() << "OPENIGTLINK_FOUND is defined";
+#else
+    qDebug() << "OPENIGTLINK_FOUND is NOT defined";
+#endif
+    
     if (m_isConnected) {
+        qDebug() << "IGTLClient: Already connected";
         return true;
     }
 
 #ifdef OPENIGTLINK_FOUND
+    qDebug() << "IGTLClient: Using real OpenIGTLink library";
     int result = m_socket->ConnectToServer(hostname.toLocal8Bit().data(), port);
+    qDebug() << "IGTLClient: ConnectToServer returned:" << result;
     if (result == 0) {
         m_isConnected = true;
         emit connected();
@@ -64,6 +80,7 @@ bool IGTLClient::connectToServer(const QString &hostname, int port)
     }
 #else
     // Stub implementation - always fail gracefully
+    qDebug() << "IGTLClient: Using stub implementation";
     emit connectionError("OpenIGTLink library not available");
     return false;
 #endif
@@ -90,21 +107,30 @@ void IGTLClient::sendOrientationData(double x, double y, double z)
     }
 
 #ifdef OPENIGTLINK_FOUND
-    // Create orientation message
-    igtl::OrientationMessage::Pointer orientMsg = igtl::OrientationMessage::New();
-    orientMsg->SetDeviceName("MobileDevice");
+    // Create transform message
+    igtl::TransformMessage::Pointer transformMsg = igtl::TransformMessage::New();
+    transformMsg->SetDeviceName("MobileDevice");
     
-    // Convert Euler angles to quaternion (simplified - you may want to use proper conversion)
-    // For now, just sending the raw values as quaternion components
-    orientMsg->SetOrientation(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f);
+    // Create a 4x4 transformation matrix representing rotation
+    igtl::Matrix4x4 matrix;
+    igtl::IdentityMatrix(matrix);
+    
+    // Convert Euler angles to rotation matrix (simplified rotation around Z-axis)
+    double radZ = z * M_PI / 180.0; // Convert to radians
+    matrix[0][0] = cos(radZ);
+    matrix[0][1] = -sin(radZ);
+    matrix[1][0] = sin(radZ);
+    matrix[1][1] = cos(radZ);
+    
+    transformMsg->SetMatrix(matrix);
     
     // Set timestamp
     igtl::TimeStamp::Pointer ts = igtl::TimeStamp::New();
-    igtl::TimeStamp::GetTime(ts);
-    orientMsg->SetTimeStamp(ts);
+    ts->GetTime();
+    transformMsg->SetTimeStamp(ts);
     
     // Pack and send
-    orientMsg->Pack();
-    m_socket->Send(orientMsg->GetPackPointer(), orientMsg->GetPackSize());
+    transformMsg->Pack();
+    m_socket->Send(transformMsg->GetPackPointer(), transformMsg->GetPackSize());
 #endif
 }

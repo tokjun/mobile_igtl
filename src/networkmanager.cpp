@@ -1,5 +1,6 @@
 #include "networkmanager.h"
 #include "igtlclient.h"
+#include <QDebug>
 
 NetworkManager::NetworkManager(QObject *parent)
     : QObject(parent)
@@ -24,8 +25,10 @@ NetworkManager::~NetworkManager()
 
 void NetworkManager::connectToServer(const QString &hostname, int port)
 {
+    qDebug() << "NetworkManager: Connecting to" << hostname << ":" << port;
     if (!m_isConnected) {
-        m_igtlClient->connectToServer(hostname, port);
+        bool result = m_igtlClient->connectToServer(hostname, port);
+        qDebug() << "NetworkManager: Connection result:" << result;
     }
 }
 
