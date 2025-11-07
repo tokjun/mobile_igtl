@@ -121,6 +121,8 @@ void IGTLClient::sendRotationData(double w, double x, double y, double z)
     if (norm > 0.0) {
         w /= norm; x /= norm; y /= norm; z /= norm;
         
+        qDebug() << "IGTLClient: Normalized quaternion - w=" << w << "x=" << x << "y=" << y << "z=" << z;
+        
         // Quaternion to rotation matrix conversion
         matrix[0][0] = 1.0 - 2.0 * (y*y + z*z);
         matrix[0][1] = 2.0 * (x*y - w*z);
@@ -131,6 +133,11 @@ void IGTLClient::sendRotationData(double w, double x, double y, double z)
         matrix[2][0] = 2.0 * (x*z - w*y);
         matrix[2][1] = 2.0 * (y*z + w*x);
         matrix[2][2] = 1.0 - 2.0 * (x*x + y*y);
+        
+        qDebug() << "IGTLClient: Rotation matrix:";
+        qDebug() << QString("[%1, %2, %3]").arg(matrix[0][0], 6, 'f', 3).arg(matrix[0][1], 6, 'f', 3).arg(matrix[0][2], 6, 'f', 3);
+        qDebug() << QString("[%1, %2, %3]").arg(matrix[1][0], 6, 'f', 3).arg(matrix[1][1], 6, 'f', 3).arg(matrix[1][2], 6, 'f', 3);
+        qDebug() << QString("[%1, %2, %3]").arg(matrix[2][0], 6, 'f', 3).arg(matrix[2][1], 6, 'f', 3).arg(matrix[2][2], 6, 'f', 3);
     }
     
     transformMsg->SetMatrix(matrix);
