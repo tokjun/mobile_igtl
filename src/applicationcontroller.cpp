@@ -1,16 +1,16 @@
 #include "applicationcontroller.h"
-#include "orientationsensor.h"
+#include "rotationsensor.h"
 #include "networkmanager.h"
 #include <QDebug>
 
 ApplicationController::ApplicationController(QObject *parent)
     : QObject(parent)
-    , m_orientationSensor(new OrientationSensor(this))
+    , m_rotationSensor(new RotationSensor(this))
     , m_networkManager(new NetworkManager(this))
     , m_serverHost("localhost")
     , m_serverPort(18944)
     , m_isConnected(false)
-    , m_isSendingOrientation(false)
+    , m_isSendingRotation(false)
     , m_connectionStatus("Disconnected")
 {
     // Connect signals
@@ -24,8 +24,8 @@ ApplicationController::ApplicationController(QObject *parent)
                 emit connectionStatusChanged();
             });
     
-    connect(m_orientationSensor, &OrientationSensor::orientationChanged,
-            this, &ApplicationController::onOrientationChanged);
+    connect(m_rotationSensor, &RotationSensor::rotationChanged,
+            this, &ApplicationController::onRotationChanged);
 }
 
 ApplicationController::~ApplicationController()
@@ -78,30 +78,30 @@ void ApplicationController::connectToServer()
 
 void ApplicationController::disconnectFromServer()
 {
-    stopSendingOrientation();
+    stopSendingRotation();
     m_networkManager->disconnectFromServer();
 }
 
-void ApplicationController::startSendingOrientation()
+void ApplicationController::startSendingRotation()
 {
-    qDebug() << "ApplicationController::startSendingOrientation() called";
-    qDebug() << "Connected:" << m_isConnected << "Already sending:" << m_isSendingOrientation;
+    qDebug() << "ApplicationController::startSendingRotation() called";
+    qDebug() << "Connected:" << m_isConnected << "Already sending:" << m_isSendingRotation;
     
-    if (m_isConnected && !m_isSendingOrientation) {
-        qDebug() << "Starting orientation sensor...";
-        m_orientationSensor->start();
-        m_isSendingOrientation = true;
-        qDebug() << "Orientation sending started";
+    if (m_isConnected && !m_isSendingRotation) {
+        qDebug() << "Starting rotation sensor...";
+        m_rotationSensor->start();
+        m_isSendingRotation = true;
+        qDebug() << "Rotation sending started";
     } else {
         qDebug() << "Cannot start sending - not connected or already sending";
     }
 }
 
-void ApplicationController::stopSendingOrientation()
+void ApplicationController::stopSendingRotation()
 {
-    if (m_isSendingOrientation) {
-        m_orientationSensor->stop();
-        m_isSendingOrientation = false;
+    if (m_isSendingRotation) {
+        m_rotationSensor->stop();
+        m_isSendingRotation = false;
     }
 }
 
@@ -112,7 +112,7 @@ void ApplicationController::onConnectionStateChanged()
         m_isConnected = connected;
         
         if (!connected) {
-            stopSendingOrientation();
+            stopSendingRotation();
         }
         
         m_connectionStatus = connected ? "Connected" : "Disconnected";
@@ -122,15 +122,15 @@ void ApplicationController::onConnectionStateChanged()
     }
 }
 
-void ApplicationController::onOrientationChanged(double x, double y, double z)
+void ApplicationController::onRotationChanged(double w, double x, double y, double z)
 {
-    qDebug() << "ApplicationController::onOrientationChanged:" << x << y << z;
+    qDebug() << "ApplicationController::onRotationChanged:" << w << x << y << z;
     
-    if (m_isConnected && m_isSendingOrientation) {
-        qDebug() << "Sending orientation data to network";
-        m_networkManager->sendOrientationData(x, y, z);
-        emit orientationDataSent(x, y, z);
+    if (m_isConnected && m_isSendingRotation) {
+        qDebug() << "Sending rotation data to network";
+        m_networkManager->sendRotationData(w, x, y, z);
+        emit rotationDataSent(w, x, y, z);
     } else {
-        qDebug() << "Not sending - connected:" << m_isConnected << "sending:" << m_isSendingOrientation;
+        qDebug() << "Not sending - connected:" << m_isConnected << "sending:" << m_isSendingRotation;
     }
 }

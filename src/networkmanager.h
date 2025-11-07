@@ -17,7 +17,7 @@ public:
     void disconnectFromServer();
     bool isConnected() const;
     
-    void sendOrientationData(double x, double y, double z);
+    void sendRotationData(double w, double x, double y, double z);
 
 signals:
     void connectionStateChanged();

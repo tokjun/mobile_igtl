@@ -100,7 +100,7 @@ bool IGTLClient::isConnected() const
     return m_isConnected;
 }
 
-void IGTLClient::sendOrientationData(double x, double y, double z)
+void IGTLClient::sendRotationData(double w, double x, double y, double z)
 {
     if (!m_isConnected) {
         return;
@@ -111,16 +111,27 @@ void IGTLClient::sendOrientationData(double x, double y, double z)
     igtl::TransformMessage::Pointer transformMsg = igtl::TransformMessage::New();
     transformMsg->SetDeviceName("MobileDevice");
     
-    // Create a 4x4 transformation matrix representing rotation
+    // Create a 4x4 transformation matrix from quaternion
     igtl::Matrix4x4 matrix;
     igtl::IdentityMatrix(matrix);
     
-    // Convert Euler angles to rotation matrix (simplified rotation around Z-axis)
-    double radZ = z * M_PI / 180.0; // Convert to radians
-    matrix[0][0] = cos(radZ);
-    matrix[0][1] = -sin(radZ);
-    matrix[1][0] = sin(radZ);
-    matrix[1][1] = cos(radZ);
+    // Convert quaternion (w, x, y, z) to rotation matrix
+    // Normalize quaternion first
+    double norm = sqrt(w*w + x*x + y*y + z*z);
+    if (norm > 0.0) {
+        w /= norm; x /= norm; y /= norm; z /= norm;
+        
+        // Quaternion to rotation matrix conversion
+        matrix[0][0] = 1.0 - 2.0 * (y*y + z*z);
+        matrix[0][1] = 2.0 * (x*y - w*z);
+        matrix[0][2] = 2.0 * (x*z + w*y);
+        matrix[1][0] = 2.0 * (x*y + w*z);
+        matrix[1][1] = 1.0 - 2.0 * (x*x + z*z);
+        matrix[1][2] = 2.0 * (y*z - w*x);
+        matrix[2][0] = 2.0 * (x*z - w*y);
+        matrix[2][1] = 2.0 * (y*z + w*x);
+        matrix[2][2] = 1.0 - 2.0 * (x*x + y*y);
+    }
     
     transformMsg->SetMatrix(matrix);
     

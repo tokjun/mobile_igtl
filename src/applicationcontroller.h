@@ -4,7 +4,7 @@
 #include <QQmlEngine>
 #include <QString>
 
-class OrientationSensor;
+class RotationSensor;
 class NetworkManager;
 
 class ApplicationController : public QObject
@@ -31,26 +31,26 @@ public:
 public slots:
     void connectToServer();
     void disconnectFromServer();
-    void startSendingOrientation();
-    void stopSendingOrientation();
+    void startSendingRotation();
+    void stopSendingRotation();
 
 signals:
     void connectionChanged();
     void serverHostChanged();
     void serverPortChanged();
     void connectionStatusChanged();
-    void orientationDataSent(double x, double y, double z);
+    void rotationDataSent(double w, double x, double y, double z);
 
 private slots:
     void onConnectionStateChanged();
-    void onOrientationChanged(double x, double y, double z);
+    void onRotationChanged(double w, double x, double y, double z);
 
 private:
-    OrientationSensor *m_orientationSensor;
+    RotationSensor *m_rotationSensor;
     NetworkManager *m_networkManager;
     QString m_serverHost;
     int m_serverPort;
     bool m_isConnected;
-    bool m_isSendingOrientation;
+    bool m_isSendingRotation;
     QString m_connectionStatus;
 };

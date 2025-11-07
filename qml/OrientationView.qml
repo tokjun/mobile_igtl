@@ -4,19 +4,21 @@ import QtQuick.Layouts
 
 GroupBox {
     id: root
-    title: "Device Orientation"
+    title: "Device Rotation (Quaternion)"
     
-    property real orientationX: 0.0
-    property real orientationY: 0.0
-    property real orientationZ: 0.0
+    property real rotationW: 1.0
+    property real rotationX: 0.0
+    property real rotationY: 0.0
+    property real rotationZ: 0.0
     
     // Connect to orientation data signals
     Connections {
         target: appController
-        function onOrientationDataSent(x, y, z) {
-            root.orientationX = x
-            root.orientationY = y
-            root.orientationZ = z
+        function onRotationDataSent(w, x, y, z) {
+            root.rotationW = w
+            root.rotationX = x
+            root.rotationY = y
+            root.rotationZ = z
         }
     }
     
@@ -32,29 +34,38 @@ GroupBox {
             rowSpacing: 10
             
             Label {
-                text: "X (Roll):"
+                text: "W:"
                 font.bold: true
             }
             Label {
-                text: root.orientationX.toFixed(2) + "°"
+                text: root.rotationW.toFixed(3)
                 font.family: "monospace"
             }
             
             Label {
-                text: "Y (Pitch):"
+                text: "X:"
                 font.bold: true
             }
             Label {
-                text: root.orientationY.toFixed(2) + "°"
+                text: root.rotationX.toFixed(3)
                 font.family: "monospace"
             }
             
             Label {
-                text: "Z (Yaw):"
+                text: "Y:"
                 font.bold: true
             }
             Label {
-                text: root.orientationZ.toFixed(2) + "°"
+                text: root.rotationY.toFixed(3)
+                font.family: "monospace"
+            }
+            
+            Label {
+                text: "Z:"
+                font.bold: true
+            }
+            Label {
+                text: root.rotationZ.toFixed(3)
                 font.family: "monospace"
             }
         }
@@ -76,25 +87,30 @@ GroupBox {
                 color: "#607D8B"
                 radius: 8
                 
-                // Apply rotation based on orientation
+                // Apply rotation based on quaternion
+                // Convert quaternion to Euler angles for visualization
+                property real eulerX: Math.atan2(2.0 * (root.rotationW * root.rotationX + root.rotationY * root.rotationZ), 1.0 - 2.0 * (root.rotationX * root.rotationX + root.rotationY * root.rotationY)) * 180.0 / Math.PI
+                property real eulerY: Math.asin(Math.max(-1.0, Math.min(1.0, 2.0 * (root.rotationW * root.rotationY - root.rotationZ * root.rotationX)))) * 180.0 / Math.PI
+                property real eulerZ: Math.atan2(2.0 * (root.rotationW * root.rotationZ + root.rotationX * root.rotationY), 1.0 - 2.0 * (root.rotationY * root.rotationY + root.rotationZ * root.rotationZ)) * 180.0 / Math.PI
+                
                 transform: [
                     Rotation {
                         axis.x: 1
                         axis.y: 0
                         axis.z: 0
-                        angle: root.orientationX
+                        angle: deviceRepresentation.eulerX
                     },
                     Rotation {
                         axis.x: 0
                         axis.y: 1
                         axis.z: 0
-                        angle: root.orientationY
+                        angle: deviceRepresentation.eulerY
                     },
                     Rotation {
                         axis.x: 0
                         axis.y: 0
                         axis.z: 1
-                        angle: root.orientationZ
+                        angle: deviceRepresentation.eulerZ
                     }
                 ]
                 
@@ -120,7 +136,7 @@ GroupBox {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.margins: 8
-                text: "Device Orientation Preview"
+                text: "Device Rotation Preview"
                 font.pixelSize: 12
                 color: "#546E7A"
             }
@@ -135,13 +151,13 @@ GroupBox {
                 text: "Start Sending"
                 enabled: appController.isConnected
                 Layout.fillWidth: true
-                onClicked: appController.startSendingOrientation()
+                onClicked: appController.startSendingRotation()
             }
             
             Button {
                 text: "Stop Sending"
                 Layout.fillWidth: true
-                onClicked: appController.stopSendingOrientation()
+                onClicked: appController.stopSendingRotation()
             }
         }
         
@@ -149,8 +165,8 @@ GroupBox {
         Label {
             Layout.fillWidth: true
             text: appController.isConnected ? 
-                  "Connected! Tap 'Start Sending' to transmit orientation data." :
-                  "Please connect to a server first to send orientation data."
+                  "Connected! Tap 'Start Sending' to transmit rotation data." :
+                  "Please connect to a server first to send rotation data."
             wrapMode: Text.WordWrap
             color: "#666"
             font.italic: true

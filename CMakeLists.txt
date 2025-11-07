@@ -26,6 +26,7 @@ set(SOURCES
     src/main.cpp
     src/applicationcontroller.cpp
     src/orientationsensor.cpp
+    src/rotationsensor.cpp
     src/igtlclient.cpp
     src/networkmanager.cpp
 )
@@ -33,6 +34,7 @@ set(SOURCES
 set(HEADERS
     src/applicationcontroller.h
     src/orientationsensor.h
+    src/rotationsensor.h
     src/igtlclient.h
     src/networkmanager.h
 )
