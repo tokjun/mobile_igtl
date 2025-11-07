@@ -29,9 +29,9 @@ GroupBox {
         // Orientation display
         GridLayout {
             Layout.fillWidth: true
-            columns: 2
-            columnSpacing: 20
-            rowSpacing: 10
+            columns: 4
+            columnSpacing: 15
+            rowSpacing: 8
             
             Label {
                 text: "W:"

@@ -8,12 +8,12 @@ GroupBox {
     
     ColumnLayout {
         anchors.fill: parent
-        spacing: 10
+        spacing: 8
         
-        // Status indicator
+        // Status indicator - compact
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 40
+            Layout.preferredHeight: 30
             color: appController.isConnected ? "#4CAF50" : "#F44336"
             radius: 5
             
@@ -29,8 +29,8 @@ GroupBox {
         GridLayout {
             Layout.fillWidth: true
             columns: 2
-            columnSpacing: 10
-            rowSpacing: 10
+            columnSpacing: 8
+            rowSpacing: 8
             
             Label {
                 text: "Host:"

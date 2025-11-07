@@ -2,23 +2,24 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-ScrollView {
+Item {
     id: root
     
     ColumnLayout {
-        width: root.width
-        spacing: 20
+        anchors.fill: parent
+        anchors.margins: 10
+        spacing: 10
         
-        // Header
+        // Header - reduced height
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 80
+            Layout.preferredHeight: 60
             color: "#2196F3"
             
             Label {
                 anchors.centerIn: parent
                 text: "OpenIGTLink Mobile"
-                font.pixelSize: 24
+                font.pixelSize: 18
                 font.bold: true
                 color: "white"
             }
@@ -27,13 +28,13 @@ ScrollView {
         // Connection Panel
         ConnectionPanel {
             Layout.fillWidth: true
-            Layout.margins: 20
+            Layout.fillHeight: true
         }
         
         // Orientation View
         OrientationView {
             Layout.fillWidth: true
-            Layout.margins: 20
+            Layout.fillHeight: true
         }
     }
 }
