@@ -161,6 +161,21 @@ GroupBox {
             }
         }
         
+        // Reset orientation button
+        Button {
+            text: "Reset Orientation"
+            Layout.fillWidth: true
+            onClicked: appController.resetOrientation()
+            
+            // Visual feedback
+            background: Rectangle {
+                color: parent.pressed ? "#FFC107" : "#FF9800"
+                radius: 4
+                border.width: 1
+                border.color: "#FF8F00"
+            }
+        }
+        
         // Instructions
         Label {
             Layout.fillWidth: true

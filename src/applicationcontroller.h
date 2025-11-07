@@ -33,6 +33,7 @@ public slots:
     void disconnectFromServer();
     void startSendingRotation();
     void stopSendingRotation();
+    void resetOrientation();
 
 signals:
     void connectionChanged();

@@ -3,8 +3,6 @@
 #include <QObject>
 #include <QTimer>
 
-class QRotationSensor;
-class QRotationReading;
 class QMagnetometer;
 class QMagnetometerReading;
 class QAccelerometer;
@@ -21,6 +19,8 @@ public:
     void start();
     void stop();
     bool isActive() const;
+    
+    void resetOrientation();
 
 signals:
     void rotationChanged(double w, double x, double y, double z);
@@ -29,13 +29,20 @@ private slots:
     void performSensorFusion();
 
 private:
-    QRotationSensor *m_rotationSensor;
     QMagnetometer *m_magnetometer;
     QAccelerometer *m_accelerometer;
     QTimer *m_timer;
     bool m_isActive;
     
+    // Initial orientation for relative calculations
+    double m_initialW, m_initialX, m_initialY, m_initialZ;
+    bool m_hasInitialOrientation;
+    
     // Sensor fusion helpers
-    void quaternionFromEuler(double roll, double pitch, double yaw, double &w, double &x, double &y, double &z);
-    double calculateMagneticHeading(double mx, double my, double mz, double roll, double pitch);
+    void quaternionFromTwoVectors(double gx, double gy, double gz, double mx, double my, double mz, double &w, double &x, double &y, double &z);
+    void normalizeVector(double &x, double &y, double &z);
+    double vectorDot(double x1, double y1, double z1, double x2, double y2, double z2);
+    void vectorCross(double x1, double y1, double z1, double x2, double y2, double z2, double &x, double &y, double &z);
+    void quaternionMultiply(double q1w, double q1x, double q1y, double q1z, double q2w, double q2x, double q2y, double q2z, double &qw, double &qx, double &qy, double &qz);
+    void quaternionConjugate(double qw, double qx, double qy, double qz, double &conjW, double &conjX, double &conjY, double &conjZ);
 };

@@ -134,3 +134,9 @@ void ApplicationController::onRotationChanged(double w, double x, double y, doub
         qDebug() << "Not sending - connected:" << m_isConnected << "sending:" << m_isSendingRotation;
     }
 }
+
+void ApplicationController::resetOrientation()
+{
+    qDebug() << "ApplicationController::resetOrientation() called";
+    m_rotationSensor->resetOrientation();
+}
