@@ -32,15 +32,26 @@ This guide covers how to deploy your Qt-based OpenIGTLink mobile application to 
    # Verify iOS kit is configured with proper device/simulator
    ```
 
-2. **Build for iOS**
+2. **Build OpenIGTLink for iOS**
+   ```bash
+   git clone https://github.com/openigtlink/OpenIGTLink.git third_party-ios/openigtlink
+   cd third_party-ios/openigtlink
+   mkdir build && cd build
+   qt-cmake .. -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES="arm64"    
+   ```
+Then, use the following steps to build the code using Xcode.
+  - Open the generated `.xcodeproj` in Xcode
+  - Choose ALL_BUILD and Any iOS Device (arm64)
+  - Build
+   
+3. **Build for iOS**
    ```bash
    mkdir build-ios && cd build-ios
-   cmake .. -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES="arm64"
-   cmake --build . --config Release
+   qt-cmake .. -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_ARCHITECTURES="arm64"
    ```
 
-3. **Xcode Configuration**
-   - Open the generated `.xcodeproj` in Xcode
+4. **Xcode Configuration**
+   - Open the generated `.xcodeproj` (under thrid_party-ios/openigtlink/build) in Xcode
    - Configure signing & capabilities
    - Set bundle identifier (e.g., `com.yourcompany.openigtlinkmobile`)
    - Configure deployment target (iOS 12.0+)
