@@ -171,23 +171,23 @@ void RotationSensor::resetOrientation()
 
 void RotationSensor::quaternionFromTwoVectors(double gx, double gy, double gz, double mx, double my, double mz, double &w, double &x, double &y, double &z)
 {
-    // Create orthonormal basis from gravity and magnetic vectors
+    // Create orthonormal basis from gravity and magnetic vectors (right-handed)
     // Z-axis: opposite of gravity (up)
     double zx = -gx, zy = -gy, zz = -gz;
     
-    // Y-axis: cross product of Z and magnetic field (east)
-    double yx, yy, yz;
-    vectorCross(zx, zy, zz, mx, my, mz, yx, yy, yz);
-    normalizeVector(yx, yy, yz);
-    
-    // X-axis: cross product of Y and Z (north)
+    // X-axis: cross product of magnetic field and Z (east)
     double xx, xy, xz;
-    vectorCross(yx, yy, yz, zx, zy, zz, xx, xy, xz);
+    vectorCross(mx, my, mz, zx, zy, zz, xx, xy, xz);
     normalizeVector(xx, xy, xz);
     
-    // Convert rotation matrix to quaternion
+    // Y-axis: cross product of Z and X (north)
+    double yx, yy, yz;
+    vectorCross(zx, zy, zz, xx, xy, xz, yx, yy, yz);
+    normalizeVector(yx, yy, yz);
+    
+    // Convert rotation matrix to quaternion (right-handed coordinate system)
     // Rotation matrix:
-    // [xx, yx, zx]
+    // [xx, yx, zx]  (X=east, Y=north, Z=up)
     // [xy, yy, zy]
     // [xz, yz, zz]
     
