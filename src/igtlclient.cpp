@@ -134,12 +134,36 @@ void IGTLClient::sendRotationData(double w, double x, double y, double z, double
         matrix[2][1] = 2.0 * (y*z + w*x);
         matrix[2][2] = 1.0 - 2.0 * (x*x + y*y);
         
-        // Add Z-axis offset along the device's local Z-axis (after rotation)
-        // The device's local Z-axis in world coordinates is the 3rd column of rotation matrix
-        matrix[0][3] = matrix[0][2] * zOffset; // X translation = Z_world_x * offset  
-        matrix[1][3] = matrix[1][2] * zOffset; // Y translation = Z_world_y * offset
-        matrix[2][3] = matrix[2][2] * zOffset; // Z translation = Z_world_z * offset
+        // Rotate about offset point along device's Z-axis
+        // Sequence: T = T_to_point * R * T_back
+        // T_back: translate by -zOffset along device Z (move rotation center to origin)
+        // R: rotate about origin  
+        // T_to_point: translate by +zOffset along device Z (move back to offset point)
         
+        // The offset point is at (0, 0, zOffset) in device coordinates
+        // After rotation, this becomes the translation component
+        
+        // For rotation about offset point, the final translation is:
+        // translation = rotation_center_offset - rotated(rotation_center_offset)
+        // where rotation_center_offset = (0, 0, zOffset) in device coordinates
+        
+        double offset_x = 0.0;
+        double offset_y = 0.0; 
+        double offset_z = zOffset;
+        
+        // Apply rotation to the offset point to see where it ends up
+        double rotated_offset_x = matrix[0][0] * offset_x + matrix[0][1] * offset_y + matrix[0][2] * offset_z;
+        double rotated_offset_y = matrix[1][0] * offset_x + matrix[1][1] * offset_y + matrix[1][2] * offset_z;
+        double rotated_offset_z = matrix[2][0] * offset_x + matrix[2][1] * offset_y + matrix[2][2] * offset_z;
+        
+        //// Translation = original_offset - rotated_offset
+        //matrix[0][3] = -offset_x + 0*rotated_offset_x; // = -rotated_offset_x (since offset_x = 0)
+        //matrix[1][3] = -offset_y + 0*rotated_offset_y; // = -rotated_offset_y (since offset_y = 0)
+        //matrix[2][3] = -offset_z + 0*rotated_offset_z; // = zOffset - rotated_offset_z
+        matrix[0][3] = rotated_offset_x; // = -rotated_offset_x (since offset_x = 0)
+        matrix[1][3] = rotated_offset_y; // = -rotated_offset_y (since offset_y = 0)
+        matrix[2][3] = rotated_offset_z; // = zOffset - rotated_offset_z
+
         qDebug() << "IGTLClient: Rotation matrix with Z-offset (" << zOffset << "mm):";
         qDebug() << QString("[%1, %2, %3, %4]").arg(matrix[0][0], 6, 'f', 3).arg(matrix[0][1], 6, 'f', 3).arg(matrix[0][2], 6, 'f', 3).arg(matrix[0][3], 6, 'f', 3);
         qDebug() << QString("[%1, %2, %3, %4]").arg(matrix[1][0], 6, 'f', 3).arg(matrix[1][1], 6, 'f', 3).arg(matrix[1][2], 6, 'f', 3).arg(matrix[1][3], 6, 'f', 3);
