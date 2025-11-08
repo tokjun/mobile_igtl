@@ -23,7 +23,7 @@ public:
     void disconnectFromServer();
     bool isConnected() const;
     
-    void sendRotationData(double w, double x, double y, double z);
+    void sendRotationData(double w, double x, double y, double z, double zOffset = 0.0);
 
 signals:
     void connected();

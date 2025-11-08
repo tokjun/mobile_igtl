@@ -10,6 +10,7 @@ GroupBox {
     property real rotationX: 0.0
     property real rotationY: 0.0
     property real rotationZ: 0.0
+    property real zOffset: 0.0
     
     // Connect to orientation data signals
     Connections {
@@ -173,6 +174,68 @@ GroupBox {
                 radius: 4
                 border.width: 1
                 border.color: "#FF8F00"
+            }
+        }
+        
+        // Z-axis offset slider
+        Column {
+            Layout.fillWidth: true
+            spacing: 8
+            
+            Label {
+                text: "Z-axis Offset: " + root.zOffset.toFixed(3) + " mm"
+                font.bold: true
+            }
+            
+            Rectangle {
+                id: sliderTrack
+                width: parent.width
+                height: 40
+                color: "#ECEFF1"
+                radius: 20
+                border.color: "#CFD8DC"
+                border.width: 1
+                
+                Rectangle {
+                    id: sliderHandle
+                    width: 30
+                    height: 30
+                    radius: 15
+                    color: "#2196F3"
+                    y: (parent.height - height) / 2
+                    x: parent.width / 2 - width / 2 // Center initially
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        drag.target: parent
+                        drag.axis: Drag.XAxis
+                        drag.minimumX: 0
+                        drag.maximumX: sliderTrack.width - sliderHandle.width
+                        
+                        onPositionChanged: {
+                            if (drag.active) {
+                                // Convert slider position to offset value
+                                // Center = 0, full left = -500mm, full right = +500mm
+                                var center = (sliderTrack.width - sliderHandle.width) / 2
+                                var position = sliderHandle.x - center
+                                var maxRange = center
+                                root.zOffset = (position / maxRange) * 500
+                                
+                                // Update application controller
+                                appController.zAxisOffset = root.zOffset
+                            }
+                        }
+                    }
+                    
+                    // Visual feedback
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 10
+                        height: 10
+                        radius: 5
+                        color: "#FFFFFF"
+                    }
+                }
             }
         }
         

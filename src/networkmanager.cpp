@@ -44,10 +44,10 @@ bool NetworkManager::isConnected() const
     return m_isConnected;
 }
 
-void NetworkManager::sendRotationData(double w, double x, double y, double z)
+void NetworkManager::sendRotationData(double w, double x, double y, double z, double zOffset)
 {
     if (m_isConnected) {
-        m_igtlClient->sendRotationData(w, x, y, z);
+        m_igtlClient->sendRotationData(w, x, y, z, zOffset);
     }
 }
 

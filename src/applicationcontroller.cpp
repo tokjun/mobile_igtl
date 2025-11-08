@@ -12,6 +12,7 @@ ApplicationController::ApplicationController(QObject *parent)
     , m_isConnected(false)
     , m_isSendingRotation(false)
     , m_connectionStatus("Disconnected")
+    , m_zAxisOffset(0.0)
 {
     // Connect signals
     connect(m_networkManager, &NetworkManager::connectionStateChanged,
@@ -66,6 +67,19 @@ void ApplicationController::setServerPort(int port)
 QString ApplicationController::connectionStatus() const
 {
     return m_connectionStatus;
+}
+
+double ApplicationController::zAxisOffset() const
+{
+    return m_zAxisOffset;
+}
+
+void ApplicationController::setZAxisOffset(double offset)
+{
+    if (m_zAxisOffset != offset) {
+        m_zAxisOffset = offset;
+        emit zAxisOffsetChanged();
+    }
 }
 
 void ApplicationController::connectToServer()
@@ -127,8 +141,8 @@ void ApplicationController::onRotationChanged(double w, double x, double y, doub
     qDebug() << "ApplicationController::onRotationChanged:" << w << x << y << z;
     
     if (m_isConnected && m_isSendingRotation) {
-        qDebug() << "Sending rotation data to network";
-        m_networkManager->sendRotationData(w, x, y, z);
+        qDebug() << "Sending rotation data to network with Z-offset:" << m_zAxisOffset;
+        m_networkManager->sendRotationData(w, x, y, z, m_zAxisOffset);
         emit rotationDataSent(w, x, y, z);
     } else {
         qDebug() << "Not sending - connected:" << m_isConnected << "sending:" << m_isSendingRotation;

@@ -16,6 +16,7 @@ class ApplicationController : public QObject
     Q_PROPERTY(QString serverHost READ serverHost WRITE setServerHost NOTIFY serverHostChanged)
     Q_PROPERTY(int serverPort READ serverPort WRITE setServerPort NOTIFY serverPortChanged)
     Q_PROPERTY(QString connectionStatus READ connectionStatus NOTIFY connectionStatusChanged)
+    Q_PROPERTY(double zAxisOffset READ zAxisOffset WRITE setZAxisOffset NOTIFY zAxisOffsetChanged)
 
 public:
     explicit ApplicationController(QObject *parent = nullptr);
@@ -27,6 +28,8 @@ public:
     int serverPort() const;
     void setServerPort(int port);
     QString connectionStatus() const;
+    double zAxisOffset() const;
+    void setZAxisOffset(double offset);
 
 public slots:
     void connectToServer();
@@ -40,6 +43,7 @@ signals:
     void serverHostChanged();
     void serverPortChanged();
     void connectionStatusChanged();
+    void zAxisOffsetChanged();
     void rotationDataSent(double w, double x, double y, double z);
 
 private slots:
@@ -54,4 +58,5 @@ private:
     bool m_isConnected;
     bool m_isSendingRotation;
     QString m_connectionStatus;
+    double m_zAxisOffset;
 };
