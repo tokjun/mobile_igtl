@@ -71,65 +71,238 @@ GroupBox {
             }
         }
         
-        // Visual representation
+        // Attitude Indicator (Artificial Horizon)
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 150
-            color: "#ECEFF1"
+            Layout.preferredHeight: 200
+            color: "#2E2E2E"
             radius: 8
             border.color: "#CFD8DC"
             border.width: 1
             
-            Rectangle {
-                id: deviceRepresentation
-                width: 60
-                height: 100
+            Item {
+                id: attitudeIndicator
+                width: Math.min(parent.width - 20, parent.height - 20)
+                height: width
                 anchors.centerIn: parent
-                color: "#607D8B"
-                radius: 8
                 
-                // Apply rotation based on quaternion
-                // Convert quaternion to Euler angles for visualization
-                property real eulerX: Math.atan2(2.0 * (root.rotationW * root.rotationX + root.rotationY * root.rotationZ), 1.0 - 2.0 * (root.rotationX * root.rotationX + root.rotationY * root.rotationY)) * 180.0 / Math.PI
-                property real eulerY: Math.asin(Math.max(-1.0, Math.min(1.0, 2.0 * (root.rotationW * root.rotationY - root.rotationZ * root.rotationX)))) * 180.0 / Math.PI
-                property real eulerZ: Math.atan2(2.0 * (root.rotationW * root.rotationZ + root.rotationX * root.rotationY), 1.0 - 2.0 * (root.rotationY * root.rotationY + root.rotationZ * root.rotationZ)) * 180.0 / Math.PI
+                // Convert quaternion to Euler angles - corrected for device vs aircraft coordinates
+                property real deviceRoll: Math.atan2(2.0 * (root.rotationW * root.rotationX + root.rotationY * root.rotationZ), 1.0 - 2.0 * (root.rotationX * root.rotationX + root.rotationY * root.rotationY)) * 180.0 / Math.PI
+                property real deviceYaw: Math.atan2(2.0 * (root.rotationW * root.rotationZ + root.rotationX * root.rotationY), 1.0 - 2.0 * (root.rotationY * root.rotationY + root.rotationZ * root.rotationZ)) * 180.0 / Math.PI
                 
-                transform: [
-                    Rotation {
-                        axis.x: 1
-                        axis.y: 0
-                        axis.z: 0
-                        angle: deviceRepresentation.eulerX
-                    },
-                    Rotation {
-                        axis.x: 0
-                        axis.y: 1
-                        axis.z: 0
-                        angle: deviceRepresentation.eulerY
-                    },
-                    Rotation {
-                        axis.x: 0
-                        axis.y: 0
-                        axis.z: 1
-                        angle: deviceRepresentation.eulerZ
-                    }
-                ]
+                // Map device axes to aircraft attitude indicator
+                property real pitch: deviceRoll    // Aircraft pitch = Device roll (about X)
+                property real roll: deviceYaw      // Aircraft roll = Device yaw (about Z)
                 
-                // Device screen indicator
-                Rectangle {
-                    width: parent.width * 0.8
-                    height: parent.height * 0.6
+                // Canvas-based attitude indicator with proper circular clipping
+                Canvas {
+                    id: attitudeCanvas
+                    width: parent.width * 0.85
+                    height: width
                     anchors.centerIn: parent
-                    color: "#37474F"
-                    radius: 4
                     
-                    Rectangle {
-                        width: parent.width * 0.9
-                        height: parent.height * 0.9
-                        anchors.centerIn: parent
-                        color: "#263238"
-                        radius: 2
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.clearRect(0, 0, width, height)
+                        
+                        // Create circular clipping path
+                        var radius = width / 2
+                        var centerX = width / 2
+                        var centerY = height / 2
+                        
+                        ctx.save()
+                        ctx.beginPath()
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
+                        ctx.clip()
+                        
+                        // Calculate horizon position and rotation
+                        var pitchOffset = attitudeIndicator.pitch * 2
+                        var rollAngle = -attitudeIndicator.roll * Math.PI / 180
+                        
+                        // Save context for horizon rotation
+                        ctx.save()
+                        ctx.translate(centerX, centerY)
+                        ctx.rotate(rollAngle)
+                        ctx.translate(-centerX, -centerY + pitchOffset)
+                        
+                        // Draw sky (blue top)
+                        ctx.fillStyle = "#4FC3F7"
+                        ctx.fillRect(-width, -height, width * 3, centerY + height)
+                        
+                        // Draw ground (brown bottom)  
+                        ctx.fillStyle = "#8D6E63"
+                        ctx.fillRect(-width, centerY, width * 3, height * 2)
+                        
+                        // Draw horizon line
+                        ctx.strokeStyle = "white"
+                        ctx.lineWidth = 2
+                        ctx.beginPath()
+                        ctx.moveTo(-width, centerY)
+                        ctx.lineTo(width * 2, centerY)
+                        ctx.stroke()
+                        
+                        // Draw pitch ticks and numbers
+                        ctx.strokeStyle = "white"
+                        ctx.fillStyle = "white"
+                        ctx.lineWidth = 1
+                        ctx.font = "12px Arial"
+                        ctx.textAlign = "center"
+                        
+                        // Sky pitch lines (positive)
+                        var pitchLines = [10, 20, 30]
+                        for (var i = 0; i < pitchLines.length; i++) {
+                            var pitch = pitchLines[i]
+                            var y = centerY - pitch * 2
+                            
+                            // Draw tick line
+                            ctx.beginPath()
+                            ctx.moveTo(centerX - 30, y)
+                            ctx.lineTo(centerX + 30, y)
+                            ctx.stroke()
+                            
+                            // Draw numbers on both sides
+                            ctx.fillText(pitch.toString(), centerX - 45, y + 4)
+                            ctx.fillText(pitch.toString(), centerX + 45, y + 4)
+                        }
+                        
+                        // Ground pitch lines (negative)
+                        var groundPitchLines = [10, 20, 30]
+                        for (var j = 0; j < groundPitchLines.length; j++) {
+                            var groundPitch = groundPitchLines[j]
+                            var groundY = centerY + groundPitch * 2
+                            
+                            // Draw tick line
+                            ctx.beginPath()
+                            ctx.moveTo(centerX - 30, groundY)
+                            ctx.lineTo(centerX + 30, groundY)
+                            ctx.stroke()
+                            
+                            // Draw numbers on both sides
+                            ctx.fillText(groundPitch.toString(), centerX - 45, groundY + 4)
+                            ctx.fillText(groundPitch.toString(), centerX + 45, groundY + 4)
+                        }
+                        
+                        ctx.restore() // Restore from rotation
+                        ctx.restore() // Restore from clipping
                     }
+                    
+                    // Repaint when attitude changes
+                    Connections {
+                        target: attitudeIndicator
+                        function onPitchChanged() { attitudeCanvas.requestPaint() }
+                        function onRollChanged() { attitudeCanvas.requestPaint() }
+                    }
+                }
+                
+                // Bank angle markings (roll ticks) around the circle edge
+                Repeater {
+                    model: [-60, -45, -30, -20, -10, 0, 10, 20, 30, 45, 60]
+                    Rectangle {
+                        width: modelData % 30 === 0 ? 3 : (modelData % 10 === 0 ? 2 : 1)
+                        height: modelData % 30 === 0 ? 15 : (modelData % 10 === 0 ? 10 : 6)
+                        color: "white"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        anchors.topMargin: 5
+                        
+                        transform: Rotation {
+                            origin.x: width / 2
+                            origin.y: attitudeIndicator.height / 2 - 5
+                            angle: modelData
+                        }
+                        
+                        // Add numbers for major angles
+                        Text {
+                            visible: modelData % 30 === 0 && modelData !== 0
+                            text: Math.abs(modelData)
+                            color: "white"
+                            font.pixelSize: 10
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.bottom
+                            anchors.topMargin: 2
+                        }
+                    }
+                }
+                
+                // Bank angle triangle pointer - simple rotation approach
+                Item {
+                    id: triangleContainer
+                    width: parent.width
+                    height: parent.height
+                    anchors.centerIn: parent
+                    
+                    transform: Rotation {
+                        origin.x: triangleContainer.width / 2
+                        origin.y: triangleContainer.height / 2
+                        angle: attitudeIndicator.roll
+                    }
+                    
+                    // Triangle positioned at top of circle
+                    Canvas {
+                        width: 12
+                        height: 8
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        anchors.topMargin: 18
+                        
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            ctx.fillStyle = "white"
+                            ctx.beginPath()
+                            ctx.moveTo(width / 2, 0)
+                            ctx.lineTo(0, height)
+                            ctx.lineTo(width, height)
+                            ctx.closePath()
+                            ctx.fill()
+                        }
+                    }
+                }
+                
+                // Fixed aircraft symbol (always in center, outside clipping)
+                Item {
+                    anchors.centerIn: parent
+                    z: 10  // Above everything else
+                    
+                    // Center dot
+                    Rectangle {
+                        width: 6
+                        height: 6
+                        radius: 3
+                        color: "white"
+                        anchors.centerIn: parent
+                    }
+                    
+                    // Left wing
+                    Rectangle {
+                        width: 40
+                        height: 3
+                        color: "white"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.right: parent.horizontalCenter
+                        anchors.rightMargin: 3
+                    }
+                    
+                    // Right wing
+                    Rectangle {
+                        width: 40
+                        height: 3
+                        color: "white"
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.horizontalCenter
+                        anchors.leftMargin: 3
+                    }
+                }
+                
+                // Outer bezel
+                Rectangle {
+                    width: parent.width
+                    height: parent.height
+                    radius: width / 2
+                    color: "transparent"
+                    border.color: "#BDBDBD"
+                    border.width: 3
+                    anchors.centerIn: parent
                 }
             }
             
@@ -137,9 +310,9 @@ GroupBox {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.margins: 8
-                text: "Device Rotation Preview"
+                text: "Attitude Indicator"
                 font.pixelSize: 12
-                color: "#546E7A"
+                color: "#BDBDBD"
             }
         }
         
