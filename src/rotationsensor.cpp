@@ -174,37 +174,37 @@ void RotationSensor::performSensorFusion()
     double dt = std::chrono::duration<double>(currentTime - lastTime).count();
     lastTime = currentTime;
     
-    // Always use accelerometer + magnetometer for absolute orientation
-    // This ensures consistent reference regardless of reset timing
-    normalizeVector(ax, ay, az);
-    normalizeVector(mx, my, mz);
-    quaternionFromTwoVectors(ax, ay, az, mx, my, mz, w, x, y, z);
-    
-    // If gyroscope is available, use it for smoothing but not primary tracking
-    if (hasGyroscope && dt > 0.001 && dt < 0.1) {
-        // Apply a small amount of gyroscope-based smoothing to reduce noise
-        // but keep accelerometer+magnetometer as the primary source
-        double gyro_weight = 0.02; // Very small influence
-        if ((abs(gyrox) + abs(gyroy) + abs(gyroz)) > 1e-6) {
-            // Slight smoothing based on gyroscope
-            double half_dt = dt * 0.5 * gyro_weight;
+    if (hasGyroscope) {
+        // Use gyroscope for primary tracking with simple integration
+        
+        if (dt > 0.001 && dt < 0.1 && (abs(gyrox) + abs(gyroy) + abs(gyroz)) > 1e-6) {
+            // Simple quaternion integration from gyroscope
+            double half_dt = dt * 0.5;
             double dq0 = -m_q1 * gyrox * half_dt - m_q2 * gyroy * half_dt - m_q3 * gyroz * half_dt;
             double dq1 = m_q0 * gyrox * half_dt + m_q2 * gyroz * half_dt - m_q3 * gyroy * half_dt;
             double dq2 = m_q0 * gyroy * half_dt - m_q1 * gyroz * half_dt + m_q3 * gyrox * half_dt;
             double dq3 = m_q0 * gyroz * half_dt + m_q1 * gyroy * half_dt - m_q2 * gyrox * half_dt;
             
-            // Blend with accelerometer+magnetometer result
-            w += dq0; x += dq1; y += dq2; z += dq3;
+            m_q0 += dq0;
+            m_q1 += dq1;
+            m_q2 += dq2;
+            m_q3 += dq3;
             
-            // Normalize
-            double norm = sqrt(w*w + x*x + y*y + z*z);
+            // Normalize quaternion
+            double norm = sqrt(m_q0*m_q0 + m_q1*m_q1 + m_q2*m_q2 + m_q3*m_q3);
             if (norm > 1e-6) {
-                w /= norm; x /= norm; y /= norm; z /= norm;
+                m_q0 /= norm; m_q1 /= norm; m_q2 /= norm; m_q3 /= norm;
+            } else {
+                m_q0 = 1.0; m_q1 = 0.0; m_q2 = 0.0; m_q3 = 0.0;
             }
         }
         
-        // Update gyroscope state to current orientation to prevent drift
-        m_q0 = w; m_q1 = x; m_q2 = y; m_q3 = z;
+        w = m_q0; x = m_q1; y = m_q2; z = m_q3;
+    } else {
+        // Fallback to accelerometer + magnetometer approach
+        normalizeVector(ax, ay, az);
+        normalizeVector(mx, my, mz);
+        quaternionFromTwoVectors(ax, ay, az, mx, my, mz, w, x, y, z);
     }
     
     // If we don't have an initial orientation, set it now
@@ -239,13 +239,8 @@ void RotationSensor::performSensorFusion()
 void RotationSensor::resetOrientation()
 {
     qDebug() << "RotationSensor::resetOrientation() called";
-    
-    // Simply reset the relative orientation tracking
-    // Since we use accelerometer+magnetometer as primary source,
-    // the next reading will automatically be correct
     m_hasInitialOrientation = false;
-    
-    qDebug() << "RotationSensor: Reset complete - next reading will be new reference";
+    // The next reading will set the new initial orientation
 }
 
 void RotationSensor::quaternionFromTwoVectors(double gx, double gy, double gz, double mx, double my, double mz, double &w, double &x, double &y, double &z)
