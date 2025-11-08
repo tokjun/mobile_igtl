@@ -143,40 +143,6 @@ GroupBox {
             }
         }
         
-        // Control buttons
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-            
-            Button {
-                text: "Start Sending"
-                enabled: appController.isConnected
-                Layout.fillWidth: true
-                onClicked: appController.startSendingRotation()
-            }
-            
-            Button {
-                text: "Stop Sending"
-                Layout.fillWidth: true
-                onClicked: appController.stopSendingRotation()
-            }
-        }
-        
-        // Reset orientation button
-        Button {
-            text: "Reset Orientation"
-            Layout.fillWidth: true
-            onClicked: appController.resetOrientation()
-            
-            // Visual feedback
-            background: Rectangle {
-                color: parent.pressed ? "#FFC107" : "#FF9800"
-                radius: 4
-                border.width: 1
-                border.color: "#FF8F00"
-            }
-        }
-        
         // Z-axis offset slider
         Column {
             Layout.fillWidth: true
@@ -236,6 +202,47 @@ GroupBox {
                         color: "#FFFFFF"
                     }
                 }
+            }
+        }
+        
+        // Control buttons
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 10
+            
+            Button {
+                text: "Start Sending"
+                enabled: appController.isConnected
+                Layout.fillWidth: true
+                onClicked: appController.startSendingRotation()
+            }
+            
+            Button {
+                text: "Stop Sending"
+                Layout.fillWidth: true
+                onClicked: appController.stopSendingRotation()
+            }
+        }
+        
+        // Reset transform button
+        Button {
+            text: "Reset Transform"
+            Layout.fillWidth: true
+            onClicked: {
+                appController.resetOrientation()
+                // Reset Z-axis offset
+                root.zOffset = 0.0
+                appController.zAxisOffset = 0.0
+                // Reset slider handle to center
+                sliderHandle.x = sliderTrack.width / 2 - sliderHandle.width / 2
+            }
+            
+            // Visual feedback
+            background: Rectangle {
+                color: parent.pressed ? "#FFC107" : "#FF9800"
+                radius: 4
+                border.width: 1
+                border.color: "#FF8F00"
             }
         }
         
