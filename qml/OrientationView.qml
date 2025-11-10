@@ -4,7 +4,7 @@ import QtQuick.Layouts
 
 GroupBox {
     id: root
-    title: "Device Rotation (Quaternion)"
+    title: "Device Orientation"
     
     property real rotationW: 1.0
     property real rotationX: 0.0
@@ -25,7 +25,7 @@ GroupBox {
     
     ColumnLayout {
         anchors.fill: parent
-        spacing: 15
+        spacing: 3
         
         
         // Attitude Indicator (Artificial Horizon)
@@ -281,7 +281,8 @@ GroupBox {
         // Heading Indicator
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 60
+            Layout.preferredHeight: 75
+            Layout.topMargin: -8
             color: "#2E2E2E"
             radius: 8
             border.color: "#CFD8DC"
