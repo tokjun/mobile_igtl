@@ -51,6 +51,9 @@ private slots:
     void onRotationChanged(double w, double x, double y, double z);
 
 private:
+    void loadSettings();
+    void saveSettings();
+    
     RotationSensor *m_rotationSensor;
     NetworkManager *m_networkManager;
     QString m_serverHost;

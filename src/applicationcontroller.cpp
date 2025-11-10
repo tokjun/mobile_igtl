@@ -2,18 +2,19 @@
 #include "rotationsensor.h"
 #include "networkmanager.h"
 #include <QDebug>
+#include <QSettings>
 
 ApplicationController::ApplicationController(QObject *parent)
     : QObject(parent)
     , m_rotationSensor(new RotationSensor(this))
     , m_networkManager(new NetworkManager(this))
-    , m_serverHost("localhost")
-    , m_serverPort(18944)
     , m_isConnected(false)
     , m_isSendingRotation(false)
     , m_connectionStatus("Disconnected")
     , m_zAxisOffset(0.0)
 {
+    // Load saved settings
+    loadSettings();
     // Connect signals
     connect(m_networkManager, &NetworkManager::connectionStateChanged,
             this, &ApplicationController::onConnectionStateChanged);
@@ -47,6 +48,7 @@ void ApplicationController::setServerHost(const QString &host)
 {
     if (m_serverHost != host) {
         m_serverHost = host;
+        saveSettings();
         emit serverHostChanged();
     }
 }
@@ -60,6 +62,7 @@ void ApplicationController::setServerPort(int port)
 {
     if (m_serverPort != port) {
         m_serverPort = port;
+        saveSettings();
         emit serverPortChanged();
     }
 }
@@ -153,4 +156,20 @@ void ApplicationController::resetOrientation()
 {
     qDebug() << "ApplicationController::resetOrientation() called";
     m_rotationSensor->resetOrientation();
+}
+
+void ApplicationController::loadSettings()
+{
+    QSettings settings;
+    m_serverHost = settings.value("connection/serverHost", "localhost").toString();
+    m_serverPort = settings.value("connection/serverPort", 18944).toInt();
+    qDebug() << "Loaded settings - Host:" << m_serverHost << "Port:" << m_serverPort;
+}
+
+void ApplicationController::saveSettings()
+{
+    QSettings settings;
+    settings.setValue("connection/serverHost", m_serverHost);
+    settings.setValue("connection/serverPort", m_serverPort);
+    qDebug() << "Saved settings - Host:" << m_serverHost << "Port:" << m_serverPort;
 }
