@@ -121,6 +121,9 @@ void IGTLClient::sendRotationData(double w, double x, double y, double z, double
     if (norm > 0.0) {
         w /= norm; x /= norm; y /= norm; z /= norm;
         
+        // Invert X-axis rotation direction
+        x = -x;
+        
         qDebug() << "IGTLClient: Normalized quaternion - w=" << w << "x=" << x << "y=" << y << "z=" << z;
         
         // Quaternion to rotation matrix conversion
