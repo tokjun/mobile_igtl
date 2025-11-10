@@ -10,21 +10,6 @@ GroupBox {
         anchors.fill: parent
         spacing: 8
         
-        // Status indicator - compact
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 30
-            color: appController.isConnected ? "#4CAF50" : "#F44336"
-            radius: 5
-            
-            Label {
-                anchors.centerIn: parent
-                text: appController.connectionStatus
-                color: "white"
-                font.bold: true
-            }
-        }
-        
         // Server settings
         GridLayout {
             Layout.fillWidth: true

@@ -27,49 +27,6 @@ GroupBox {
         anchors.fill: parent
         spacing: 15
         
-        // Orientation display
-        GridLayout {
-            Layout.fillWidth: true
-            columns: 4
-            columnSpacing: 15
-            rowSpacing: 8
-            
-            Label {
-                text: "W:"
-                font.bold: true
-            }
-            Label {
-                text: root.rotationW.toFixed(3)
-                font.family: "monospace"
-            }
-            
-            Label {
-                text: "X:"
-                font.bold: true
-            }
-            Label {
-                text: root.rotationX.toFixed(3)
-                font.family: "monospace"
-            }
-            
-            Label {
-                text: "Y:"
-                font.bold: true
-            }
-            Label {
-                text: root.rotationY.toFixed(3)
-                font.family: "monospace"
-            }
-            
-            Label {
-                text: "Z:"
-                font.bold: true
-            }
-            Label {
-                text: root.rotationZ.toFixed(3)
-                font.family: "monospace"
-            }
-        }
         
         // Attitude Indicator (Artificial Horizon)
         Rectangle {
@@ -306,14 +263,19 @@ GroupBox {
                 }
             }
             
-            Label {
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.margins: 8
-                text: "Attitude Indicator"
-                font.pixelSize: 12
-                color: "#BDBDBD"
+            // Connection status indicator
+            Rectangle {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.margins: 10
+                width: 12
+                height: 12
+                radius: 6
+                color: appController.isConnected ? "#4CAF50" : "#F44336"
+                border.color: "white"
+                border.width: 1
             }
+            
         }
         
         // Heading Indicator
@@ -345,9 +307,6 @@ GroupBox {
                     color: "transparent"
                     clip: true
                     
-                    // Debug: Add a subtle border to see clipping area
-                    border.color: "#404040"
-                    border.width: 1
                     
                     // Moving scale background
                     Canvas {
@@ -515,52 +474,41 @@ GroupBox {
             spacing: 10
             
             Button {
-                text: "Start Sending"
+                text: "Start"
                 enabled: appController.isConnected
                 Layout.fillWidth: true
                 onClicked: appController.startSendingRotation()
             }
             
             Button {
-                text: "Stop Sending"
+                text: "Stop"
                 Layout.fillWidth: true
                 onClicked: appController.stopSendingRotation()
             }
-        }
-        
-        // Reset transform button
-        Button {
-            text: "Reset Transform"
-            Layout.fillWidth: true
-            onClicked: {
-                appController.resetOrientation()
-                // Reset Z-axis offset
-                root.zOffset = 0.0
-                appController.zAxisOffset = 0.0
-                // Reset slider handle to center
-                sliderHandle.x = sliderTrack.width / 2 - sliderHandle.width / 2
-                // Reset heading to North (0°)
-                headingIndicator.initialRotationY = headingIndicator.deviceRotationY
-            }
             
-            // Visual feedback
-            background: Rectangle {
-                color: parent.pressed ? "#FFC107" : "#FF9800"
-                radius: 4
-                border.width: 1
-                border.color: "#FF8F00"
+            Button {
+                text: "Reset"
+                Layout.fillWidth: true
+                onClicked: {
+                    appController.resetOrientation()
+                    // Reset Z-axis offset
+                    root.zOffset = 0.0
+                    appController.zAxisOffset = 0.0
+                    // Reset slider handle to center
+                    sliderHandle.x = sliderTrack.width / 2 - sliderHandle.width / 2
+                    // Reset heading to North (0°)
+                    headingIndicator.initialRotationY = headingIndicator.deviceRotationY
+                }
+                
+                // Visual feedback
+                background: Rectangle {
+                    color: parent.pressed ? "#FFC107" : "#FF9800"
+                    radius: 4
+                    border.width: 1
+                    border.color: "#FF8F00"
+                }
             }
         }
         
-        // Instructions
-        Label {
-            Layout.fillWidth: true
-            text: appController.isConnected ? 
-                  "Connected! Tap 'Start Sending' to transmit rotation data." :
-                  "Please connect to a server first to send rotation data."
-            wrapMode: Text.WordWrap
-            color: "#666"
-            font.italic: true
-        }
     }
 }
