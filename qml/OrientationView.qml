@@ -316,6 +316,137 @@ GroupBox {
             }
         }
         
+        // Heading Indicator
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 60
+            color: "#2E2E2E"
+            radius: 8
+            border.color: "#CFD8DC"
+            border.width: 1
+            
+            Item {
+                id: headingIndicator
+                anchors.fill: parent
+                anchors.margins: 10
+                
+                // Use device rotation about Y-axis (vertical screen axis) for heading  
+                property real deviceRotationY: Math.asin(Math.max(-1.0, Math.min(1.0, 2.0 * (root.rotationW * root.rotationY - root.rotationZ * root.rotationX)))) * 180.0 / Math.PI
+                property real initialRotationY: 0.0  // Initial rotation offset for reset
+                // Convert to 0-360 compass heading (0 = North) with reset offset
+                property real heading: ((deviceRotationY - initialRotationY) + 360) % 360
+                
+                // Clipping rectangle for the moving scale
+                Rectangle {
+                    id: headingClip
+                    width: parent.width - 40  // Leave space for triangle
+                    height: parent.height
+                    anchors.centerIn: parent
+                    color: "transparent"
+                    clip: true
+                    
+                    // Debug: Add a subtle border to see clipping area
+                    border.color: "#404040"
+                    border.width: 1
+                    
+                    // Moving scale background
+                    Canvas {
+                        id: headingCanvas
+                        width: parent.width * 12  // Extra wide canvas for scrolling
+                        height: parent.height
+                        anchors.verticalCenter: parent.verticalCenter
+                        
+                        property real pixelsPerDegree: 4
+                        x: -headingIndicator.heading * pixelsPerDegree + parent.width / 2 - width / 2  // Move scale based on heading, centered
+                        
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            
+                            var centerY = height / 2
+                            var centerX = width / 2
+                            
+                            // Draw compass heading scale (0-360 degrees)
+                            ctx.strokeStyle = "white"
+                            ctx.fillStyle = "white"
+                            ctx.font = "12px Arial"
+                            ctx.textAlign = "center"
+                            
+                            // Draw scale across the canvas width
+                            for (var heading = -360; heading <= 720; heading += 10) {
+                                var normalizedHeading = ((heading % 360) + 360) % 360
+                                var x = centerX + heading * headingCanvas.pixelsPerDegree
+                                    
+                                // Major ticks every 30 degrees
+                                if (normalizedHeading % 30 === 0) {
+                                    ctx.lineWidth = 2
+                                    ctx.beginPath()
+                                    ctx.moveTo(x, centerY - 15)
+                                    ctx.lineTo(x, centerY + 15)
+                                    ctx.stroke()
+                                    
+                                    // Add compass headings with cardinal directions
+                                    var label = ""
+                                    if (normalizedHeading === 0) label = "N"
+                                    else if (normalizedHeading === 90) label = "E" 
+                                    else if (normalizedHeading === 180) label = "S"
+                                    else if (normalizedHeading === 270) label = "W"
+                                    else label = normalizedHeading.toString()
+                                    
+                                    ctx.fillText(label, x, centerY + 25)  // Move labels below the line
+                                }
+                                // Minor ticks every 10 degrees
+                                else {
+                                    ctx.lineWidth = 1
+                                    ctx.beginPath()
+                                    ctx.moveTo(x, centerY - 8)
+                                    ctx.lineTo(x, centerY + 8)
+                                    ctx.stroke()
+                                    
+                                    // Add numbers for intermediate headings
+                                    ctx.font = "10px Arial"
+                                    ctx.fillText(normalizedHeading.toString(), x, centerY + 20)
+                                    ctx.font = "12px Arial"
+                                }
+                            }
+                        }
+                        
+                        // Repaint when heading changes
+                        Connections {
+                            target: headingIndicator
+                            function onHeadingChanged() { 
+                                headingCanvas.requestPaint()
+                            }
+                            function onDeviceRotationYChanged() {
+                                headingCanvas.requestPaint()
+                            }
+                        }
+                    }
+                }
+                
+                // Fixed triangle pointer at center
+                Canvas {
+                    width: 16
+                    height: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 5
+                    
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.clearRect(0, 0, width, height)
+                        ctx.fillStyle = "white"
+                        ctx.beginPath()
+                        ctx.moveTo(width / 2, height)
+                        ctx.lineTo(0, 0)
+                        ctx.lineTo(width, 0)
+                        ctx.closePath()
+                        ctx.fill()
+                    }
+                }
+            }
+        }
+        
         // Z-axis offset slider
         Column {
             Layout.fillWidth: true
@@ -408,6 +539,8 @@ GroupBox {
                 appController.zAxisOffset = 0.0
                 // Reset slider handle to center
                 sliderHandle.x = sliderTrack.width / 2 - sliderHandle.width / 2
+                // Reset heading to North (0°)
+                headingIndicator.initialRotationY = headingIndicator.deviceRotationY
             }
             
             // Visual feedback
