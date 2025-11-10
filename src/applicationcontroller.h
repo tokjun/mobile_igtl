@@ -13,6 +13,7 @@ class ApplicationController : public QObject
     QML_ELEMENT
 
     Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectionChanged)
+    Q_PROPERTY(bool isSendingRotation READ isSendingRotation NOTIFY sendingStatusChanged)
     Q_PROPERTY(QString serverHost READ serverHost WRITE setServerHost NOTIFY serverHostChanged)
     Q_PROPERTY(int serverPort READ serverPort WRITE setServerPort NOTIFY serverPortChanged)
     Q_PROPERTY(QString connectionStatus READ connectionStatus NOTIFY connectionStatusChanged)
@@ -23,6 +24,7 @@ public:
     ~ApplicationController();
 
     bool isConnected() const;
+    bool isSendingRotation() const;
     QString serverHost() const;
     void setServerHost(const QString &host);
     int serverPort() const;
@@ -40,6 +42,7 @@ public slots:
 
 signals:
     void connectionChanged();
+    void sendingStatusChanged();
     void serverHostChanged();
     void serverPortChanged();
     void connectionStatusChanged();

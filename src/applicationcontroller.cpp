@@ -39,6 +39,11 @@ bool ApplicationController::isConnected() const
     return m_isConnected;
 }
 
+bool ApplicationController::isSendingRotation() const
+{
+    return m_isSendingRotation;
+}
+
 QString ApplicationController::serverHost() const
 {
     return m_serverHost;
@@ -108,6 +113,7 @@ void ApplicationController::startSendingRotation()
         qDebug() << "Starting rotation sensor...";
         m_rotationSensor->start();
         m_isSendingRotation = true;
+        emit sendingStatusChanged();
         qDebug() << "Rotation sending started";
     } else {
         qDebug() << "Cannot start sending - not connected or already sending";
@@ -119,6 +125,7 @@ void ApplicationController::stopSendingRotation()
     if (m_isSendingRotation) {
         m_rotationSensor->stop();
         m_isSendingRotation = false;
+        emit sendingStatusChanged();
     }
 }
 

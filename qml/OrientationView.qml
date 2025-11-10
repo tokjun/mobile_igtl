@@ -476,13 +476,14 @@ GroupBox {
             
             Button {
                 text: "Start"
-                enabled: appController.isConnected
+                enabled: appController.isConnected && !appController.isSendingRotation
                 Layout.fillWidth: true
                 onClicked: appController.startSendingRotation()
             }
             
             Button {
                 text: "Stop"
+                enabled: appController.isSendingRotation
                 Layout.fillWidth: true
                 onClicked: appController.stopSendingRotation()
             }
