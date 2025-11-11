@@ -47,7 +47,18 @@ set(QML_FILES
     qml/OrientationView.qml
 )
 
+# Resources
+set(RESOURCES
+    resources/icon.svg
+)
+
 qt6_add_executable(OpenIGTLinkMobile ${SOURCES} ${HEADERS})
+
+# Add resources
+qt6_add_resources(OpenIGTLinkMobile "app_resources"
+    PREFIX "/resources"
+    FILES ${RESOURCES}
+)
 
 qt6_add_qml_module(OpenIGTLinkMobile
     URI OpenIGTLinkMobile
@@ -79,6 +90,7 @@ target_include_directories(OpenIGTLinkMobile PRIVATE
 if(ANDROID)
     set_target_properties(OpenIGTLinkMobile PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
+        QT_ANDROID_APPLICATION_ARGUMENTS "--icon"
     )
 endif()
 
@@ -89,5 +101,24 @@ if(IOS)
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         QT_IOS_LAUNCH_SCREEN "${CMAKE_CURRENT_SOURCE_DIR}/ios/LaunchScreen.storyboard"
+        XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon"
+        QT_IOS_ASSET_CATALOGS "${CMAKE_CURRENT_SOURCE_DIR}/ios/Assets.xcassets"
+    )
+endif()
+
+# Desktop/macOS icon configuration
+if(APPLE AND NOT IOS)
+    set_target_properties(OpenIGTLinkMobile PROPERTIES
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.openigtlink.mobile
+        MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+        MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
+        MACOSX_BUNDLE_ICON_FILE "icon.svg"
+    )
+endif()
+
+# Set window icon for desktop platforms
+if(NOT ANDROID AND NOT IOS)
+    set_target_properties(OpenIGTLinkMobile PROPERTIES
+        QT_TARGET_RC_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon.svg"
     )
 endif()
