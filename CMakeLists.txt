@@ -97,7 +97,7 @@ endif()
 # iOS specific configuration
 if(IOS)
     set_target_properties(OpenIGTLinkMobile PROPERTIES
-        MACOSX_BUNDLE_GUI_IDENTIFIER com.openigtlink.mobile
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.openigtlink.openigtlinkmobile
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         QT_IOS_LAUNCH_SCREEN "${CMAKE_CURRENT_SOURCE_DIR}/ios/LaunchScreen.storyboard"
@@ -109,7 +109,7 @@ endif()
 # Desktop/macOS icon configuration
 if(APPLE AND NOT IOS)
     set_target_properties(OpenIGTLinkMobile PROPERTIES
-        MACOSX_BUNDLE_GUI_IDENTIFIER com.openigtlink.mobile
+        MACOSX_BUNDLE_GUI_IDENTIFIER com.openigtlink.openigtlinkmobile
         MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
         MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
         MACOSX_BUNDLE_ICON_FILE "icon.svg"

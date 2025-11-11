@@ -56,6 +56,14 @@ Then, use the following steps to build the code using Xcode.
    - Set bundle identifier (e.g., `com.yourcompany.openigtlinkmobile`)
    - Configure deployment target (iOS 12.0+)
 
+5. **Icon Setup**
+To setup an icon for the app launcher, the asset folder should appear under `(Project Name)` > `Resources` in the Project Navigator. If not, add the asset folder as follows:
+   - Right-click `Resources` in the Project Navigator.
+   - Choose `Add Files to "OpenIGTLinkMobile"...`
+   - Choose the `ios/Assets.xcassets` folder, and in `Add to targes:`, check `OpenIGTLinkMobile`
+   - `Assets.xcassets` should appear under `Resources` in the Project Navigator.
+
+
 ### Android Deployment
 
 1. **Configure Android SDK/NDK paths in Qt Creator**
